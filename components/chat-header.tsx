@@ -50,19 +50,32 @@ function PureChatHeader({
         />
       )}
 
-      <Button
-        asChild
-        className="order-3 hidden bg-zinc-900 px-2 text-zinc-50 hover:bg-zinc-800 md:ml-auto md:flex md:h-fit dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-      >
-        <Link
-          href={"https://github.com/unicodeveloper/raise-ai"}
-          rel="noreferrer"
-          target="_blank"
+      <div className="order-3 hidden gap-2 md:ml-auto md:flex">
+        <Button
+          asChild
+          className="h-fit bg-zinc-900 px-2 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
         >
-          <GitIcon />
-          GitHub
-        </Link>
-      </Button>
+          <Link
+            href="https://github.com/unicodeveloper/raise-ai"
+            target="_blank"
+          >
+            <GitIcon />
+            GitHub
+          </Link>
+        </Button>
+        <Button
+          asChild
+          className="h-fit bg-zinc-900 px-2 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+        >
+          <Link
+            href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Funicodeveloper%2Fraise-ai&env=OPENAI_API_KEY,AUTH_SECRET,VALYU_API_KEY"
+            target="_blank"
+          >
+            <VercelIcon size={16} />
+            Deploy
+          </Link>
+        </Button>
+      </div>
     </header>
   );
 }

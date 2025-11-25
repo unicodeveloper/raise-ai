@@ -282,6 +282,24 @@ const PurePreviewMessage = ({
                 );
               }
 
+              if (state === "input-available" || state === "input-streaming") {
+                return (
+                  <div key={toolCallId} className="flex items-center gap-2 rounded-lg border border-muted bg-background p-3 shadow-sm">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="font-medium text-sm">Deep Search</span>
+                      <span className="line-clamp-1 text-muted-foreground text-xs">
+                        {part.input && typeof part.input === 'object' && 'query' in part.input 
+                          ? (part.input as any).query 
+                          : "Analyzing your request..."}
+                      </span>
+                    </div>
+                  </div>
+                );
+              }
+
               return (
                 <Tool defaultOpen={true} key={toolCallId}>
                   <ToolHeader
