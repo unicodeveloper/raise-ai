@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useSWRConfig } from "swr";
 import { unstable_serialize } from "swr/infinite";
 import { PlusIcon, TrashIcon } from "@/components/icons";
+import { RaiseLogo } from "@/components/raise-logo";
 import { SidebarHistory, getChatHistoryPaginationKey } from "@/components/sidebar-history";
 import { SidebarUserNav } from "@/components/sidebar-user-nav";
 import { Button } from "@/components/ui/button";
@@ -56,32 +57,30 @@ export function AppSidebar({ user }: { user: User | undefined }) {
 
   return (
     <>
-      <Sidebar className="group-data-[side=left]:border-r-0">
-        <SidebarHeader>
+      <Sidebar className="group-data-[side=left]:border-r-0 bg-zinc-50/50 dark:bg-zinc-900/50">
+        <SidebarHeader className="pt-4">
           <SidebarMenu>
-            <div className="flex flex-row items-center justify-between">
+            <div className="flex flex-row items-center justify-between px-2">
               <Link
-                className="flex flex-row items-center gap-3"
                 href="/"
                 onClick={() => {
                   setOpenMobile(false);
                 }}
+                className="group"
               >
-                <span className="cursor-pointer rounded-md px-2 font-semibold text-lg hover:bg-muted">
-                  Chatbot
-                </span>
+                <RaiseLogo className="scale-90 transition-transform group-hover:scale-95" />
               </Link>
               <div className="flex flex-row gap-1">
                 {user && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
-                        className="h-8 p-1 md:h-fit md:p-2"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                         onClick={() => setShowDeleteAllDialog(true)}
                         type="button"
                         variant="ghost"
                       >
-                        <TrashIcon />
+                        <TrashIcon size={16} />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent align="end" className="hidden md:block">
@@ -92,7 +91,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      className="h-8 p-1 md:h-fit md:p-2"
+                      className="h-8 w-8 p-0 text-muted-foreground hover:bg-primary/10 hover:text-primary"
                       onClick={() => {
                         setOpenMobile(false);
                         router.push("/");
@@ -101,7 +100,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                       type="button"
                       variant="ghost"
                     >
-                      <PlusIcon />
+                      <PlusIcon size={16} />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent align="end" className="hidden md:block">
@@ -112,10 +111,10 @@ export function AppSidebar({ user }: { user: User | undefined }) {
             </div>
           </SidebarMenu>
         </SidebarHeader>
-        <SidebarContent>
+        <SidebarContent className="px-2 pt-4">
           <SidebarHistory user={user} />
         </SidebarContent>
-        <SidebarFooter>{user && <SidebarUserNav user={user} />}</SidebarFooter>
+        <SidebarFooter className="pb-4 px-2">{user && <SidebarUserNav user={user} />}</SidebarFooter>
       </Sidebar>
 
       <AlertDialog onOpenChange={setShowDeleteAllDialog} open={showDeleteAllDialog}>

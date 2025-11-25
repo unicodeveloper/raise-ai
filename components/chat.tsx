@@ -63,10 +63,16 @@ export function Chat({
   const [showCreditCardAlert, setShowCreditCardAlert] = useState(false);
   const [currentModelId, setCurrentModelId] = useState(initialChatModel);
   const currentModelIdRef = useRef(currentModelId);
+  const [enableValyuSearch, setEnableValyuSearch] = useState(false);
+  const enableValyuSearchRef = useRef(enableValyuSearch);
 
   useEffect(() => {
     currentModelIdRef.current = currentModelId;
   }, [currentModelId]);
+
+  useEffect(() => {
+    enableValyuSearchRef.current = enableValyuSearch;
+  }, [enableValyuSearch]);
 
   const {
     messages,
@@ -91,6 +97,7 @@ export function Chat({
             message: request.messages.at(-1),
             selectedChatModel: currentModelIdRef.current,
             selectedVisibilityType: visibilityType,
+            enableValyuSearch: enableValyuSearchRef.current,
             ...request.body,
           },
         };
@@ -156,7 +163,7 @@ export function Chat({
 
   return (
     <>
-      <div className="overscroll-behavior-contain flex h-dvh min-w-0 touch-pan-y flex-col bg-background">
+      <div className="overscroll-behavior-contain flex h-dvh min-w-0 touch-pan-y flex-col bg-gradient-to-b from-background via-background to-muted/20">
         <ChatHeader
           chatId={id}
           isReadonly={isReadonly}
@@ -175,7 +182,7 @@ export function Chat({
           votes={votes}
         />
 
-        <div className="sticky bottom-0 z-1 mx-auto flex w-full max-w-4xl gap-2 border-t-0 bg-background px-2 pb-3 md:px-4 md:pb-4">
+        <div className="sticky bottom-0 z-1 mx-auto flex w-full max-w-4xl gap-2 border-t-0 bg-transparent px-2 pb-3 md:px-4 md:pb-4">
           {!isReadonly && (
             <MultimodalInput
               attachments={attachments}
@@ -192,6 +199,8 @@ export function Chat({
               status={status}
               stop={stop}
               usage={usage}
+              enableValyuSearch={enableValyuSearch}
+              onValyuSearchToggle={setEnableValyuSearch}
             />
           )}
         </div>

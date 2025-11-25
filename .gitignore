@@ -36,9 +36,15 @@ yarn-error.log*
 .env
 .vercel
 .env*.local
+.claude
+.cursor
+.gitignore
+.env.local.example
 
 # Playwright
 /test-results/
 /playwright-report/
 /blob-report/
 /playwright/*
+
+

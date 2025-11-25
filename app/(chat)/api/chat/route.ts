@@ -3,7 +3,6 @@ import {
   convertToModelMessages,
   createUIMessageStream,
   JsonToSseTransformStream,
-  smoothStream,
   stepCountIs,
   streamText,
 } from "ai";
@@ -26,9 +25,9 @@ import { createDocument } from "@/lib/ai/tools/create-document";
 import { getWeather } from "@/lib/ai/tools/get-weather";
 import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
 import { updateDocument } from "@/lib/ai/tools/update-document";
+import { valyuSearch } from "@/lib/ai/tools/valyu-search";
 import { isProductionEnvironment } from "@/lib/constants";
 import {
-  createStreamId,
   deleteChatById,
   getChatById,
   getMessageCountByUserId,
@@ -36,6 +35,7 @@ import {
   saveChat,
   saveMessages,
   updateChatLastContextById,
+  updateChatTitleById,
 } from "@/lib/db/queries";
 import type { DBMessage } from "@/lib/db/schema";
 import { ChatSDKError } from "@/lib/errors";
@@ -101,12 +101,21 @@ export async function POST(request: Request) {
       message,
       selectedChatModel,
       selectedVisibilityType,
+      enableValyuSearch,
     }: {
       id: string;
       message: ChatMessage;
       selectedChatModel: ChatModel["id"];
       selectedVisibilityType: VisibilityType;
+      enableValyuSearch?: boolean;
     } = requestBody;
+
+    console.log("🎯 [CHAT API] Request received:", {
+      chatId: id,
+      model: selectedChatModel,
+      enableValyuSearch,
+      messagePreview: message.parts[0]?.type === "text" ? message.parts[0].text.substring(0, 100) : "non-text",
+    });
 
     const session = await auth();
 
@@ -135,17 +144,54 @@ export async function POST(request: Request) {
       // Only fetch messages if chat already exists
       messagesFromDb = await getMessagesByChatId({ id });
     } else {
-      const title = await generateTitleFromUserMessage({
-        message,
-      });
-
+      // For new chats: First save the chat, THEN save the message (foreign key dependency)
       await saveChat({
         id,
         userId: session.user.id,
-        title,
+        title: "New Chat", // Temporary title - will be updated in background
         visibility: selectedVisibilityType,
       });
+
+      // Now save the user message (must happen after chat is created)
+      await saveMessages({
+        messages: [
+          {
+            chatId: id,
+            id: message.id,
+            role: "user",
+            parts: message.parts,
+            attachments: [],
+            createdAt: new Date(),
+          },
+        ],
+      });
+
+      // Generate proper title in the background (non-blocking)
+      after(async () => {
+        try {
+          const title = await generateTitleFromUserMessage({ message });
+          await updateChatTitleById({ chatId: id, title });
+        } catch (err) {
+          console.warn("Failed to generate chat title for chat", id, err);
+        }
+      });
       // New chat - no need to fetch messages, it's empty
+    }
+
+    // For existing chats, save the user message only
+    if (chat) {
+      await saveMessages({
+        messages: [
+          {
+            chatId: id,
+            id: message.id,
+            role: "user",
+            parts: message.parts,
+            attachments: [],
+            createdAt: new Date(),
+          },
+        ],
+      });
     }
 
     const uiMessages = [...convertToUIMessages(messagesFromDb), message];
@@ -159,41 +205,32 @@ export async function POST(request: Request) {
       country,
     };
 
-    await saveMessages({
-      messages: [
-        {
-          chatId: id,
-          id: message.id,
-          role: "user",
-          parts: message.parts,
-          attachments: [],
-          createdAt: new Date(),
-        },
-      ],
-    });
-
-    const streamId = generateUUID();
-    await createStreamId({ streamId, chatId: id });
+    // Note: Resumable streams are disabled (see commented code at line 289-297)
+    // so we don't need to create a stream ID in the database
 
     let finalMergedUsage: AppUsage | undefined;
+
+    const activeTools =
+      selectedChatModel === "chat-model-grok"
+        ? []
+        : [
+            "getWeather" as const,
+            "createDocument" as const,
+            "updateDocument" as const,
+            "requestSuggestions" as const,
+            ...(enableValyuSearch ? ["valyuSearch" as const] : []),
+          ];
+
+    console.log("🔧 [CHAT API] Active tools:", activeTools);
 
     const stream = createUIMessageStream({
       execute: ({ writer: dataStream }) => {
         const result = streamText({
           model: myProvider.languageModel(selectedChatModel),
-          system: systemPrompt({ selectedChatModel, requestHints }),
+          system: systemPrompt({ selectedChatModel, requestHints, enableValyuSearch }),
           messages: convertToModelMessages(uiMessages),
           stopWhen: stepCountIs(5),
-          experimental_activeTools:
-            selectedChatModel === "chat-model-reasoning"
-              ? []
-              : [
-                  "getWeather",
-                  "createDocument",
-                  "updateDocument",
-                  "requestSuggestions",
-                ],
-          experimental_transform: smoothStream({ chunking: "word" }),
+          experimental_activeTools: activeTools,
           tools: {
             getWeather,
             createDocument: createDocument({ session, dataStream }),
@@ -202,41 +239,35 @@ export async function POST(request: Request) {
               session,
               dataStream,
             }),
+            ...(enableValyuSearch ? { valyuSearch } : {}),
           },
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,
             functionId: "stream-text",
           },
           onFinish: async ({ usage }) => {
+            // Helper to write usage data
+            const writeUsage = (usageData: AppUsage) => {
+              finalMergedUsage = usageData;
+              dataStream.write({ type: "data-usage", data: usageData });
+            };
+
             try {
+              const modelId = myProvider.languageModel(selectedChatModel).modelId;
               const providers = await getTokenlensCatalog();
-              const modelId =
-                myProvider.languageModel(selectedChatModel).modelId;
-              if (!modelId) {
-                finalMergedUsage = usage;
-                dataStream.write({
-                  type: "data-usage",
-                  data: finalMergedUsage,
-                });
+
+              // If we can't enrich the usage data, just send the basic usage
+              if (!modelId || !providers) {
+                writeUsage(usage);
                 return;
               }
 
-              if (!providers) {
-                finalMergedUsage = usage;
-                dataStream.write({
-                  type: "data-usage",
-                  data: finalMergedUsage,
-                });
-                return;
-              }
-
+              // Enrich usage data with cost information from TokenLens
               const summary = getUsage({ modelId, usage, providers });
-              finalMergedUsage = { ...usage, ...summary, modelId } as AppUsage;
-              dataStream.write({ type: "data-usage", data: finalMergedUsage });
+              writeUsage({ ...usage, ...summary, modelId } as AppUsage);
             } catch (err) {
               console.warn("TokenLens enrichment failed", err);
-              finalMergedUsage = usage;
-              dataStream.write({ type: "data-usage", data: finalMergedUsage });
+              writeUsage(usage);
             }
           },
         });
@@ -245,7 +276,8 @@ export async function POST(request: Request) {
 
         dataStream.merge(
           result.toUIMessageStream({
-            sendReasoning: true,
+            // Only send reasoning steps for the reasoning model to reduce overhead
+            sendReasoning: selectedChatModel === "chat-model-grok",
           })
         );
       },
@@ -278,16 +310,7 @@ export async function POST(request: Request) {
       },
     });
 
-    // const streamContext = getStreamContext();
-
-    // if (streamContext) {
-    //   return new Response(
-    //     await streamContext.resumableStream(streamId, () =>
-    //       stream.pipeThrough(new JsonToSseTransformStream())
-    //     )
-    //   );
-    // }
-
+  
     return new Response(stream.pipeThrough(new JsonToSseTransformStream()));
   } catch (error) {
     const vercelId = request.headers.get("x-vercel-id");

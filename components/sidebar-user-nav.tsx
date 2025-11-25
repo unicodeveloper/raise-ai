@@ -35,33 +35,33 @@ export function SidebarUserNav({ user }: { user: User }) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             {status === "loading" ? (
-              <SidebarMenuButton className="h-10 justify-between bg-background data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                <div className="flex flex-row gap-2">
-                  <div className="size-6 animate-pulse rounded-full bg-zinc-500/30" />
-                  <span className="animate-pulse rounded-md bg-zinc-500/30 text-transparent">
-                    Loading auth status
-                  </span>
+              <SidebarMenuButton className="h-12 justify-between rounded-xl bg-transparent p-2 hover:bg-muted/50 data-[state=open]:bg-muted/50">
+                <div className="flex flex-row gap-3 items-center">
+                  <div className="size-8 animate-pulse rounded-full bg-muted" />
+                  <span className="animate-pulse rounded-md bg-muted h-4 w-24" />
                 </div>
-                <div className="animate-spin text-zinc-500">
+                <div className="animate-spin text-muted-foreground">
                   <LoaderIcon />
                 </div>
               </SidebarMenuButton>
             ) : (
               <SidebarMenuButton
-                className="h-10 bg-background data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                className="h-12 justify-between rounded-xl bg-transparent p-2 hover:bg-muted/50 data-[state=open]:bg-muted/50 transition-all duration-200 border border-transparent hover:border-border/50"
                 data-testid="user-nav-button"
               >
-                <Image
-                  alt={user.email ?? "User Avatar"}
-                  className="rounded-full"
-                  height={24}
-                  src={`https://avatar.vercel.sh/${user.email}`}
-                  width={24}
-                />
-                <span className="truncate" data-testid="user-email">
-                  {isGuest ? "Guest" : user?.email}
-                </span>
-                <ChevronUp className="ml-auto" />
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <Image
+                    alt={user.email ?? "User Avatar"}
+                    className="rounded-full ring-1 ring-border/50"
+                    height={32}
+                    src={`https://avatar.vercel.sh/${user.email}`}
+                    width={32}
+                  />
+                  <span className="truncate font-medium text-sm text-foreground/80" data-testid="user-email">
+                    {isGuest ? "Guest User" : user?.email}
+                  </span>
+                </div>
+                <ChevronUp className="ml-auto size-4 text-muted-foreground" />
               </SidebarMenuButton>
             )}
           </DropdownMenuTrigger>

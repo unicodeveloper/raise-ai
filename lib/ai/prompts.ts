@@ -50,20 +50,48 @@ About the origin of user's request:
 - country: ${requestHints.country}
 `;
 
+export const valyuSearchPrompt = `
+**IMPORTANT: Valyu DeepSearch is ENABLED**
+
+You have access to the valyuSearch tool for real-time web information. You MUST use it proactively for:
+- Current events, news, or any time-sensitive information
+- Financial data (stock prices, market trends, earnings, analyst targets, SEC filings)
+- Academic research papers and scholarly articles
+- Clinical trials and medical/healthcare information
+- Company comparisons, competitive analysis, market data
+- Any query that requires up-to-date or authoritative sources
+
+CRITICAL INSTRUCTION FOR QUERY GENERATION:
+When calling valyuSearch, you must pass the user's query EXACTLY as written if it is a search intent.
+DO NOT summarize, truncate, rephrase, or "keyword-ify" the query.
+If the user asks: "Search FDA drug labels for interactions between metformin, lisinopril, and atorvastatin..."
+The tool query MUST be: "Search FDA drug labels for interactions between metformin, lisinopril, and atorvastatin..."
+Pass the full context to ensure the search engine understands the complexity of the request.
+
+When using valyuSearch:
+1. Always call it for queries about stocks, companies, markets, research, or current events
+2. Use the appropriate category: 'finance' for financial data, 'academic' for research, 'healthcare' for medical info
+3. After receiving results, synthesize and present the information clearly to the user
+4. Include relevant data points, figures, and sources from the search results
+`;
+
 export const systemPrompt = ({
   selectedChatModel,
   requestHints,
+  enableValyuSearch,
 }: {
   selectedChatModel: string;
   requestHints: RequestHints;
+  enableValyuSearch?: boolean;
 }) => {
   const requestPrompt = getRequestPromptFromHints(requestHints);
+  const valyuPrompt = enableValyuSearch ? `\n\n${valyuSearchPrompt}` : "";
 
-  if (selectedChatModel === "chat-model-reasoning") {
-    return `${regularPrompt}\n\n${requestPrompt}`;
+  if (selectedChatModel === "chat-model-grok") {
+    return `${regularPrompt}\n\n${requestPrompt}${valyuPrompt}`;
   }
 
-  return `${regularPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
+  return `${regularPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}${valyuPrompt}`;
 };
 
 export const codePrompt = `

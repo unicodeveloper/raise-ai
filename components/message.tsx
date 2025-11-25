@@ -23,6 +23,7 @@ import { MessageActions } from "./message-actions";
 import { MessageEditor } from "./message-editor";
 import { MessageReasoning } from "./message-reasoning";
 import { PreviewAttachment } from "./preview-attachment";
+import { ValyuSearchResult } from "./valyu-search-result";
 import { Weather } from "./weather";
 
 const PurePreviewMessage = ({
@@ -260,6 +261,46 @@ const PurePreviewMessage = ({
                             />
                           )
                         }
+                      />
+                    )}
+                  </ToolContent>
+                </Tool>
+              );
+            }
+
+            if (type === "tool-valyuSearch") {
+              const { toolCallId, state } = part;
+
+              if (state === "output-available" && part.output && !("error" in part.output)) {
+                return (
+                  <div key={toolCallId} className="w-full">
+                    <ValyuSearchResult
+                      toolName="Valyu Deep Search"
+                      result={part.output as any}
+                    />
+                  </div>
+                );
+              }
+
+              return (
+                <Tool defaultOpen={true} key={toolCallId}>
+                  <ToolHeader
+                    label="Valyu Deep Search"
+                    state={state}
+                    type="tool-valyuSearch"
+                  />
+                  <ToolContent>
+                    {state === "input-available" && (
+                      <ToolInput input={part.input} />
+                    )}
+                    {state === "output-available" && (
+                      <ToolOutput
+                        errorText={
+                          "error" in part.output
+                            ? String(part.output.error)
+                            : undefined
+                        }
+                        output={null}
                       />
                     )}
                   </ToolContent>

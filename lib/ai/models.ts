@@ -9,13 +9,22 @@ export type ChatModel = {
 export const chatModels: ChatModel[] = [
   {
     id: "chat-model",
-    name: "Grok Vision",
-    description: "Advanced multimodal model with vision and text capabilities",
+    name: "Claude 4.5 Opus",
+    description: "Most intelligent model for highly complex tasks",
   },
   {
-    id: "chat-model-reasoning",
-    name: "Grok Reasoning",
-    description:
-      "Uses advanced chain-of-thought reasoning for complex problems",
+    id: "chat-model-gemini",
+    name: "Gemini 3 Pro Preview",
+    description: "Next-generation multimodal capabilities",
+  },
+  {
+    id: "chat-model-grok",
+    name: "Grok 4.1 Fast Reasoning",
+    description: "xAI's fastest reasoning model",
+  },
+  {
+    id: "chat-model-sonnet",
+    name: "Claude 4.5 Sonnet",
+    description: "Balanced intelligence and speed",
   },
 ];

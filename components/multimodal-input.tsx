@@ -63,6 +63,8 @@ function PureMultimodalInput({
   selectedModelId,
   onModelChange,
   usage,
+  enableValyuSearch,
+  onValyuSearchToggle,
 }: {
   chatId: string;
   input: string;
@@ -79,6 +81,8 @@ function PureMultimodalInput({
   selectedModelId: string;
   onModelChange?: (modelId: string) => void;
   usage?: AppUsage;
+  enableValyuSearch?: boolean;
+  onValyuSearchToggle?: (enabled: boolean) => void;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
@@ -295,6 +299,7 @@ function PureMultimodalInput({
             chatId={chatId}
             selectedVisibilityType={selectedVisibilityType}
             sendMessage={sendMessage}
+            onEnableDeepSearch={() => onValyuSearchToggle?.(true)}
           />
         )}
 
@@ -308,7 +313,7 @@ function PureMultimodalInput({
       />
 
       <PromptInput
-        className="rounded-xl border border-border bg-background p-3 shadow-xs transition-all duration-200 focus-within:border-border hover:border-muted-foreground/50"
+        className="rounded-2xl border border-border/50 bg-background/80 p-4 shadow-xl shadow-black/5 backdrop-blur-xl transition-all duration-200 focus-within:border-primary/20 hover:border-border"
         onSubmit={(event) => {
           event.preventDefault();
           if (status !== "ready") {
@@ -320,7 +325,7 @@ function PureMultimodalInput({
       >
         {(attachments.length > 0 || uploadQueue.length > 0) && (
           <div
-            className="flex flex-row items-end gap-2 overflow-x-scroll"
+            className="mb-4 flex flex-row items-end gap-2 overflow-x-scroll"
             data-testid="attachments-preview"
           >
             {attachments.map((attachment) => (
@@ -378,6 +383,11 @@ function PureMultimodalInput({
               onModelChange={onModelChange}
               selectedModelId={selectedModelId}
             />
+            <ValyuSearchToggle
+              enabled={enableValyuSearch}
+              onToggle={onValyuSearchToggle}
+              status={status}
+            />
           </PromptInputTools>
 
           {status === "submitted" ? (
@@ -416,6 +426,9 @@ export const MultimodalInput = memo(
     if (prevProps.selectedModelId !== nextProps.selectedModelId) {
       return false;
     }
+    if (prevProps.enableValyuSearch !== nextProps.enableValyuSearch) {
+      return false;
+    }
 
     return true;
   }
@@ -430,7 +443,7 @@ function PureAttachmentsButton({
   status: UseChatHelpers<ChatMessage>["status"];
   selectedModelId: string;
 }) {
-  const isReasoningModel = selectedModelId === "chat-model-reasoning";
+  const isReasoningModel = selectedModelId === "chat-model-grok";
 
   return (
     <Button
@@ -507,6 +520,41 @@ function PureModelSelectorCompact({
 }
 
 const ModelSelectorCompact = memo(PureModelSelectorCompact);
+
+function PureValyuSearchToggle({
+  enabled,
+  onToggle,
+  status,
+}: {
+  enabled?: boolean;
+  onToggle?: (enabled: boolean) => void;
+  status: UseChatHelpers<ChatMessage>["status"];
+}) {
+  return (
+    <Button
+      className={cn(
+        "h-8 px-2 text-xs font-medium transition-colors",
+        enabled
+          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+          : "bg-transparent hover:bg-accent"
+      )}
+      data-testid="valyu-search-toggle"
+      disabled={status !== "ready"}
+      onClick={(event) => {
+        event.preventDefault();
+        onToggle?.(!enabled);
+      }}
+      variant={enabled ? "default" : "ghost"}
+    >
+      <span className="hidden sm:inline">Deep Search:</span>
+      <span className="font-semibold sm:ml-1">
+        {enabled ? "ON" : "OFF"}
+      </span>
+    </Button>
+  );
+}
+
+const ValyuSearchToggle = memo(PureValyuSearchToggle);
 
 function PureStopButton({
   stop,

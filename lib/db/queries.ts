@@ -99,7 +99,15 @@ export async function saveChat({
       title,
       visibility,
     });
-  } catch (_error) {
+  } catch (_error: any) {
+    console.error("Failed to save chat - Full error details:", {
+      error: _error,
+      message: _error?.message,
+      code: _error?.code,
+      detail: _error?.detail,
+      constraint: _error?.constraint_name,
+      values: { id, userId, title, visibility }
+    });
     throw new ChatSDKError("bad_request:database", "Failed to save chat");
   }
 }
@@ -246,7 +254,16 @@ export async function getChatById({ id }: { id: string }) {
 export async function saveMessages({ messages }: { messages: DBMessage[] }) {
   try {
     return await db.insert(message).values(messages);
-  } catch (_error) {
+  } catch (_error: any) {
+    console.error("Failed to save messages - Full error details:", {
+      error: _error,
+      message: _error?.message,
+      code: _error?.code,
+      detail: _error?.detail,
+      constraint: _error?.constraint_name,
+      messageCount: messages.length,
+      chatIds: messages.map(m => m.chatId),
+    });
     throw new ChatSDKError("bad_request:database", "Failed to save messages");
   }
 }
@@ -498,6 +515,23 @@ export async function updateChatVisibilityById({
     throw new ChatSDKError(
       "bad_request:database",
       "Failed to update chat visibility by id"
+    );
+  }
+}
+
+export async function updateChatTitleById({
+  chatId,
+  title,
+}: {
+  chatId: string;
+  title: string;
+}) {
+  try {
+    return await db.update(chat).set({ title }).where(eq(chat.id, chatId));
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to update chat title by id"
     );
   }
 }
