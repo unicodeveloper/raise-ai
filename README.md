@@ -2,7 +2,7 @@
 
 <div align="center">
   <a href="https://github.com/unicodeveloper/raise-ai">
-    <img src="public/opengraph-image.png" alt="RaiseAI - AI Chatbot" width="100%">
+    <img src="https://github.com/user-attachments/assets/9dc75829-4ca5-4ed5-ac20-8e06465c0e54" alt="RaiseAI - AI Chatbot" width="100%">
   </a>
 </div>
 
@@ -33,9 +33,9 @@
 
 ---
 
-## 🔍 Valyu Deep Search
+## <img src="https://github.com/valyu-network.png" width="30" height="30" alt="Valyu Logo" /> Valyu Deep Search
 
-This is the core superpower of RaiseAI. Unlike standard web search, Valyu Deep Search connects directly to specialized, high-integrity data sources.
+This is the core of RaiseAI. Unlike standard web search, Valyu Deep Search connects directly to specialized, high-integrity data sources across the web and proprietary data source.
 
 **What you can do with it:**
 
