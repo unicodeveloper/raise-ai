@@ -35,7 +35,7 @@
 
 ## <img src="https://github.com/valyu-network.png" width="30" height="30" alt="Valyu Logo" /> Valyu Deep Search
 
-This is the core of RaiseAI. Unlike standard web search, Valyu Deep Search connects directly to specialized, high-integrity data sources across the web and proprietary data source.
+This is the core of RaiseAI. Unlike standard web search, [Valyu Deep Search](https://docs.valyu.ai/overview) connects directly to specialized, [high-integrity data sources](https://www.valyu.ai/deepsearch-api) across the web and proprietary data source.
 
 **What you can do with it:**
 
@@ -56,7 +56,7 @@ When you ask a complex question, RaiseAI automatically (or manually via toggle) 
 - **Database**: [Postgres](https://vercel.com/postgres) (via Drizzle ORM) for chat history.
 - **Authentication**: [NextAuth.js](https://next-auth.js.org) (v5).
 - **Styling**: [Tailwind CSS](https://tailwindcss.com) & [shadcn/ui](https://ui.shadcn.com).
-- **Search Provider**: [Valyu](https://valyu.com) for deep specialized data retrieval.
+- **Search Provider**: [Valyu](https://valyu.com) for deep search across Valyu’s comprehensive knowledge base including web content, academic journals, financial data, and proprietary datasets. The DeepSearch API returns AI ready search results that are perfect for RAG pipelines, AI agents, and applications
 
 ---
 
@@ -145,9 +145,9 @@ For database hosting, Vercel Postgres is the easiest integration, but any Postgr
 Contributions are welcome! Please feel free to submit a Pull Request.
 
 1.  Fork the project
-2.  Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3.  Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4.  Push to the branch (`git push origin feature/AmazingFeature`)
+2.  Create your feature branch (`git checkout -b feature/this-nice-feature`)
+3.  Commit your changes (`git commit -m 'Add some nice feature'`)
+4.  Push to the branch (`git push origin feature/nice-feature`)
 5.  Open a Pull Request
 
 ---
