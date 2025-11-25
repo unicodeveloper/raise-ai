@@ -308,9 +308,6 @@ const PurePreviewMessage = ({
                     type="tool-valyuSearch"
                   />
                   <ToolContent>
-                    {state === "input-available" && (
-                      <ToolInput input={part.input} />
-                    )}
                     {state === "output-available" && (
                       <ToolOutput
                         errorText={
